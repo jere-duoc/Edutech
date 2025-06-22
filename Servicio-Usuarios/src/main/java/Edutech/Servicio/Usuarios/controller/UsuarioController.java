@@ -21,7 +21,7 @@ import Edutech.Servicio.Usuarios.service.UsuarioService;
     Hace las llamadas Http a postman, es la puerta de entrada del cliente
  */
 @RestController
-@RequestMapping("/api/v1/usuarios")
+@RequestMapping("/api/v1/gestion_usuario")
 public class UsuarioController {
 
     @Autowired

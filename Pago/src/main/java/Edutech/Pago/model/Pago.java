@@ -1,7 +1,7 @@
 package Edutech.Pago.model;
 
 import java.math.BigDecimal;
-import java.sql.Date;
+import java.time.LocalDate;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -27,7 +27,7 @@ public class Pago {
     private boolean estado;
 
     @Column(nullable = false)
-    private Date fecha_transaccion;
+    private LocalDate fecha_transaccion;
 
     @Column(nullable = false)
     private Long id_curso;

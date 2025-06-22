@@ -60,7 +60,7 @@ public class PagoController {
             pag.setId_pago(id);
             pag.setMonto(pag.getMonto()/*Se debe basar en el valor del curso*/); 
             pag.setEstado(true);
-            pag.setFecha_transaccion(pag.getFecha_transaccion());
+            // Fecha no se modifica
             /* 
             id_curso;
             id_usuario;
