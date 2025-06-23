@@ -60,11 +60,10 @@ public class PagoController {
             pag.setId_pago(id);
             pag.setMonto(pag.getMonto()/*Se debe basar en el valor del curso*/); 
             pag.setEstado(true);
-            // Fecha no se modifica
-            /* 
-            id_curso;
-            id_usuario;
-            */
+            // Fecha no se modifica 
+            pag.setId_curso(pag.getId_curso());
+            pag.setId_usuario(pag.getId_usuario());
+            
             pagoService.save(pago);
             return ResponseEntity.ok(pago);
         } catch (Exception e) {
