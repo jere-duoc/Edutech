@@ -68,6 +68,7 @@ public class EvaluacionController {
         try {
             Evaluacion eva = evaluacionService.findById(id);
             eva.setId_evaluacion(id);
+            eva.setDescripcion(evaluacion.getDescripcion());
             eva.setNota(evaluacion.getNota()); 
             eva.setFecha_evaluacion(evaluacion.getFecha_evaluacion());
             //eva.setId_curso(evaluacion.getId_curso());
@@ -80,7 +81,7 @@ public class EvaluacionController {
         }
     }
     
-    @DeleteMapping
+    @DeleteMapping({"/{id}"})
     public ResponseEntity<?> eliminar(@PathVariable Long id){
         try {
             evaluacionService.delete(id);

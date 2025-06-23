@@ -20,7 +20,10 @@ public class Evaluacion {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id_evaluacion;
     
-    @Column(nullable = false, precision = 10,scale = 2)
+    @Column(nullable = false)
+    private String descripcion;
+    
+    @Column(nullable = false)
     private Double nota;
 
     @Column(nullable = false)

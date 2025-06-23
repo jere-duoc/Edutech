@@ -9,9 +9,6 @@ import org.springframework.stereotype.Component;
 import Edutech.Gestion_Usuarios.model.Usuario;
 import Edutech.Gestion_Usuarios.repository.UsuarioRepository;
 
-import java.util.List;
-//import java.util.Random;
-
 @Profile("dev")
 @Component
 public class UsuarioDataLoader implements CommandLineRunner {
@@ -22,7 +19,6 @@ public class UsuarioDataLoader implements CommandLineRunner {
     @Override
         public void run(String... args) throws Exception {
         Faker faker = new Faker();
-        //Random random = new Random();
 
         // Generar usuarios random
         for (int i = 0; i < 5; i++) {
@@ -36,8 +32,11 @@ public class UsuarioDataLoader implements CommandLineRunner {
             usuario.setCelular(faker.number().numberBetween(900000000, 999999999));
             usuario.setContrasena(faker.lorem().characters(10, true, true)); // contraseña de 10 caracteres 
             usuario.setId_tipo_usuario(faker.number().numberBetween(1, 2));
+
+            usuarioRepository.save(usuario);
         }
 
-        List<Usuario> usuarios = usuarioRepository.findAll();
+        //List<Usuario> usuarios = usuarioRepository.findAll();
+        
     }
 }
