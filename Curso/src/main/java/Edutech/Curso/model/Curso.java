@@ -20,10 +20,10 @@ public class Curso {
     private long id_curso;
     
     @Column(nullable = false)
-    private Integer nombre_curso;
+    private String nombre_curso;
 
     @Column(nullable = false)
-    private Integer descripcion;
+    private String descripcion;
 
     @Column(nullable = false, precision = 10,scale = 2)
     private BigDecimal valor;
