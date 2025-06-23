@@ -1,7 +1,7 @@
 package Edutech.Pago.controller;
 
 import java.math.BigDecimal;
-import java.sql.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,10 +18,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import Edutech.Pago.model.Pago;
 import Edutech.Pago.service.PagoService;
-import jakarta.persistence.Column;
 
 @RestController
-@RequestMapping("/api/v1/pagos")
+@RequestMapping("/api/v1/pago")
 public class PagoController {
 
     @Autowired
@@ -37,14 +36,39 @@ public class PagoController {
          
     }
 
-    @PostMapping
+    /*@PostMapping
     public ResponseEntity<Pago> guardar(@RequestBody Pago pago){
         Pago pagoNuevo = pagoService.save(pago);
         return ResponseEntity.status(HttpStatus.CREATED).body(pagoNuevo);
     }
+    */
+
+    @PostMapping
+    public ResponseEntity<Pago> guardar(@RequestBody Pago pago) {
+    try {
+        // Validar que existen el usuario y el curso
+        pagoService.verificarUsuarioCurso(pago.getId_usuario(), pago.getId_curso());
+
+        // Obtener monto del curso
+        BigDecimal monto = pagoService.obtenerMontoCurso(pago.getId_curso());
+
+        // Completar datos que el usuario no debe mandar manualmente
+        pago.setMonto(monto);
+        pago.setFecha_transaccion(LocalDate.now());
+        if (pago.getEstado() == null)
+            pago.setEstado(true); // True por default
+
+        Pago pagoNuevo = pagoService.save(pago);
+        return ResponseEntity.status(HttpStatus.CREATED).body(pagoNuevo);
+
+    } catch (RuntimeException e) {
+        e.printStackTrace(); // muestra en la consola el momento que tira error el syst
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+    }
 
     @GetMapping({"/{id}"})
-    public ResponseEntity<Pago> buscar(@PathVariable long id){
+    public ResponseEntity<Pago> buscar(@PathVariable Long id){
         try {
             Pago pago = pagoService.findById(id);
             return ResponseEntity.ok(pago);
@@ -54,26 +78,25 @@ public class PagoController {
     }
 
     @PutMapping({"/{id}"})
-    public ResponseEntity<Pago> actualizar(@PathVariable long id, @RequestBody Pago pago){
+    public ResponseEntity<Pago> actualizar(@PathVariable Long id, @RequestBody Pago pago){
         try {
             Pago pag = pagoService.findById(id);
             pag.setId_pago(id);
-            pag.setMonto(pag.getMonto()/*Se debe basar en el valor del curso*/); 
-            pag.setEstado(true);
+            pag.setMonto(pago.getMonto()); 
+            pag.setEstado(pago.getEstado());
             // Fecha no se modifica 
-            pag.setId_curso(pag.getId_curso());
-            pag.setId_usuario(pag.getId_usuario());
+            pag.setId_curso(pago.getId_curso());
+            pag.setId_usuario(pago.getId_usuario());
             
-            pagoService.save(pago);
+            pagoService.save(pag);
             return ResponseEntity.ok(pago);
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
     }
     
-    
     @DeleteMapping
-    public ResponseEntity<?> eliminar(@PathVariable long id){
+    public ResponseEntity<?> eliminar(@PathVariable Long id){
         try {
             pagoService.delete(id);
             return ResponseEntity.noContent().build();
