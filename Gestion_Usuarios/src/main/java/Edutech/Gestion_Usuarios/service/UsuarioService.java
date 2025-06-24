@@ -1,6 +1,7 @@
 package Edutech.Gestion_Usuarios.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,7 +25,8 @@ public class UsuarioService {
     }
 
     public Usuario findById(long id) {
-        return usuarioRepository.findById(id).get();
+        Optional<Usuario> opt = usuarioRepository.findById(id);
+        return opt.orElse(null);  // Retorna null si no existe la id de usuario
     }
 
     public Usuario save(Usuario usuario){

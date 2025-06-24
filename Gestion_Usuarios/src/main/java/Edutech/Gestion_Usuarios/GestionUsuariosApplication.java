@@ -9,5 +9,5 @@ public class GestionUsuariosApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(GestionUsuariosApplication.class, args);
 	}
-
+	// localhost:8080/doc/swagger-ui/index.html
 }

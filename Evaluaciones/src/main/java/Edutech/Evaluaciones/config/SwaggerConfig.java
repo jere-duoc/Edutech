@@ -1,4 +1,4 @@
-package Edutech.Gestion_Usuarios.config;
+package Edutech.Evaluaciones.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
