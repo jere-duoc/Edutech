@@ -16,18 +16,36 @@ import org.springframework.web.bind.annotation.RestController;
 
 import Edutech.Gestion_Usuarios.model.Usuario;
 import Edutech.Gestion_Usuarios.service.UsuarioService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /*
     Hace las llamadas Http a postman, es la puerta de entrada del cliente
  */
 @RestController
 @RequestMapping("/api/v1/gestion_usuario")
+@Tag(name = "Gestion usuario", description = "Operaciones relacionadas con la gestion de usuario")
 public class UsuarioController {
 
     @Autowired
     private UsuarioService usuarioService;
 
+
     @GetMapping
+    @Operation(summary = 
+    "Lista usuarios",
+    description = 
+    "Muestra todos los usuarios existentes")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Usuarios mostrados exitosamente",
+        content = @Content(mediaType = "application/json",
+            schema = @Schema (implementation = Usuario.class))),
+        @ApiResponse(responseCode = "404", description = "No exiten usuarios")
+    })
     public ResponseEntity<List<Usuario>> listar(){
         List<Usuario> usuarios = usuarioService.findAll();
         if(usuarios.isEmpty()){
@@ -38,12 +56,32 @@ public class UsuarioController {
     }
 
     @PostMapping
+    @Operation(summary = 
+    "Guarda usuario",
+    description = 
+    "Guarda los usuarios ingresados")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Usuario guardados exitosamente",
+        content = @Content(mediaType = "application/json",
+            schema = @Schema (implementation = Usuario.class))),
+        @ApiResponse(responseCode = "404", description = "No se pudo guardar el Usuario")
+    })
     public ResponseEntity<Usuario> guardar(@RequestBody Usuario usuario){
         Usuario usuarioNuevo = usuarioService.save(usuario);
         return ResponseEntity.status(HttpStatus.CREATED).body(usuarioNuevo);
     }
 
     @GetMapping({"/{id}"})
+    @Operation(summary = 
+    "Busca usuario",
+    description = 
+    "Busca los usuarios segun la id registrada")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Usuarios encontrado exitosamente",
+        content = @Content(mediaType = "application/json",
+            schema = @Schema (implementation = Usuario.class))),
+        @ApiResponse(responseCode = "404", description = "No se pudo encontrar el Usuarios")
+    })
     public ResponseEntity<Usuario> buscar(@PathVariable long id){
         try {
             Usuario usuario = usuarioService.findById(id);
@@ -54,6 +92,16 @@ public class UsuarioController {
     }
 
     @PutMapping({"/{id}"})
+     @Operation(summary = 
+    "Actualiza usuario",
+    description = 
+    "Actualiza un usuarios segun la id registrada")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Usuarios actualizado exitosamente",
+        content = @Content(mediaType = "application/json",
+            schema = @Schema (implementation = Usuario.class))),
+        @ApiResponse(responseCode = "404", description = "No se pudo actualizar el usuario")
+    })
     public ResponseEntity<Usuario> actualizar(@PathVariable long id, @RequestBody Usuario usuario){
         try {
             Usuario user = usuarioService.findById(id);
@@ -72,9 +120,20 @@ public class UsuarioController {
             return ResponseEntity.notFound().build();
         }
     }
-    
-    
     @DeleteMapping({"/{id}"})
+    @Operation(summary = 
+    "Elimina usuario",
+    description = 
+    "Elimina un usuario segun la id registrada")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Usuarios eliminado exitosamente",
+        content = @Content(mediaType = "application/json",
+            schema = @Schema (implementation = Usuario.class))),
+        @ApiResponse(responseCode = "404", description = "No se pudo eliminar el usuario",
+        content = @Content(mediaType = "application/json",
+            schema = @Schema (implementation = Usuario.class))),
+        @ApiResponse(responseCode = "400", description = "El id ingresado es incorrecto")
+    })
     public ResponseEntity<?> eliminar(@PathVariable long id){
         try {
             usuarioService.delete(id);
