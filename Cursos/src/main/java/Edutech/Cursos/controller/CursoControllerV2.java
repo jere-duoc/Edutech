@@ -20,14 +20,16 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
+import static org.springframework.hateos.server.mvc.webMvcLinkBuilder.*;
+
 import Edutech.Cursos.model.Curso;
 import Edutech.Cursos.service.CursoService;
 
 
 @RestController
-@RequestMapping("/api/v1/curso")
+@RequestMapping("/api/v2/curso")
 @Tag(name = "Gestion de cursos", description = "Operaciones para crear, consultar, actualizar y eliminar cursos")
-public class CursoController {
+public class CursoControllerV2 {
 
     @Autowired
     private CursoService cursoService;
