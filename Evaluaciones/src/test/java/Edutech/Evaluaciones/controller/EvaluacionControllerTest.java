@@ -1,131 +1,159 @@
-package Edutech.Gestion_Usuarios.controller;
+package Edutech.Evaluaciones.controller;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+
+import java.time.LocalDate;
 import java.util.Arrays;
-import org.springframework.http.MediaType;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import Edutech.Gestion_Usuarios.model.Usuario;
-import Edutech.Gestion_Usuarios.service.UsuarioService;
+import Edutech.Evaluaciones.model.Evaluacion;
+import Edutech.Evaluaciones.service.EvaluacionService;
 
-@WebMvcTest(UsuarioController.class)
+@WebMvcTest(EvaluacionController.class)
 public class EvaluacionControllerTest { 
 
     @Autowired
     private MockMvc mockMvc;
 
     @MockBean
-    private UsuarioService usuarioService;
+    private EvaluacionService evaluacionService;
 
-    @Test
-    public void testListarUsuarios() throws Exception {
-        Usuario u1 = new Usuario(1L, 12345678, "K", "Juan Pérez", "juan.perez@example.com", 912345678, "clave1", 1); // bien originales las claves
-        Usuario u2 = new Usuario(2L, 87654321, "9", "Ana Gómez", "ana.gomez@example.com", 987654321, "clave2", 2);
+    private ObjectMapper objectMapper;
 
-        when(usuarioService.findAll()).thenReturn(Arrays.asList(u1, u2));
-
-        mockMvc.perform(get("/api/v1/gestion_usuario")
-                .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$[0].nombre_usuario").value("Juan Pérez"))
-            .andExpect(jsonPath("$[1].correo").value("ana.gomez@example.com"));
+    @BeforeEach
+    void setUp() {
+        // Configurar ObjectMapper para manejar LocalDate
+        objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.findAndRegisterModules();
     }
 
     @Test
-    public void testBuscarUsuarioExistente() throws Exception {
-        Usuario u = new Usuario(1L, 12345678, "K", "Juan Pérez", "juan.perez@example.com", 912345678, "ClaveSegura123!", 1);
+    void testListarEvaluaciones() throws Exception {
+        Evaluacion e1 = new Evaluacion(1L, "Desc 1", 4.5, LocalDate.now(), 1L, 1L);
+        Evaluacion e2 = new Evaluacion(2L, "Desc 2", 5.0, LocalDate.now(), 1L, 2L);
 
-        when(usuarioService.findById(1L)).thenReturn(u);
+        when(evaluacionService.findAll()).thenReturn(Arrays.asList(e1, e2));
 
-        mockMvc.perform(get("/api/v1/gestion_usuario/1")
-                .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/api/v1/evaluacion"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.nombre_usuario").value("Juan Pérez"))
-            .andExpect(jsonPath("$.correo").value("juan.perez@example.com"));
+            .andExpect(jsonPath("$.length()").value(2))
+            .andExpect(jsonPath("$[0].descripcion").value("Desc 1"))
+            .andExpect(jsonPath("$[1].nota").value(5.0));
     }
 
     @Test
-    public void testBuscarUsuarioNoExistente() throws Exception {
-        when(usuarioService.findById(99L)).thenThrow(new RuntimeException("Usuario no encontrado"));
+    void testListarEvaluaciones_NoContent() throws Exception {
+        when(evaluacionService.findAll()).thenReturn(Arrays.asList());
 
-        mockMvc.perform(get("/api/v1/gestion_usuario/99")
-                .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/api/v1/evaluacion"))
+            .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void testGuardarEvaluacion_Exito() throws Exception {
+        Evaluacion input = new Evaluacion(null, "Nueva Evaluacion", 3.5, null, 1L, 1L);
+        Evaluacion guardada = new Evaluacion(1L, "Nueva Evaluacion", 3.5, LocalDate.now(), 1L, 1L);
+
+        doNothing().when(evaluacionService).verificarUsuarioCurso(1L, 1L);
+        when(evaluacionService.save(any(Evaluacion.class))).thenReturn(guardada);
+
+        mockMvc.perform(post("/api/v1/evaluacion")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(input)))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.id_evaluacion").value(1L))
+            .andExpect(jsonPath("$.descripcion").value("Nueva Evaluacion"));
+    }
+
+    @Test
+    void testGuardarEvaluacion_ErrorValidacion() throws Exception {
+        Evaluacion input = new Evaluacion(null, "Nueva Evaluacion", 3.5, null, 1L, 1L);
+
+        doThrow(new RuntimeException("El ID de usuario no existe"))
+            .when(evaluacionService).verificarUsuarioCurso(1L, 1L);
+
+        mockMvc.perform(post("/api/v1/evaluacion")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(input)))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testBuscarEvaluacionPorId_Existente() throws Exception {
+        Evaluacion e = new Evaluacion(1L, "Desc", 4.0, LocalDate.now(), 1L, 1L);
+
+        when(evaluacionService.findById(1L)).thenReturn(e);
+
+        mockMvc.perform(get("/api/v1/evaluacion/1"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.descripcion").value("Desc"));
+    }
+
+    @Test
+    void testBuscarEvaluacionPorId_NoExistente() throws Exception {
+        when(evaluacionService.findById(1L)).thenThrow(new RuntimeException());
+
+        mockMvc.perform(get("/api/v1/evaluacion/1"))
             .andExpect(status().isNotFound());
     }
 
     @Test
-    public void testGuardarUsuario() throws Exception {
-    
-        Usuario guardado = new Usuario(3L, 11111111, "L", "Luis Ramirez", "luis@example.com", 912345679, "ClaveNueva123!", 2L);
+    void testActualizarEvaluacion_Exito() throws Exception {
+        Evaluacion existente = new Evaluacion(1L, "Desc vieja", 3.0, LocalDate.now(), 1L, 1L);
+        Evaluacion actualizada = new Evaluacion(1L, "Desc nueva", 4.0, LocalDate.now(), 1L, 1L);
 
-        when(usuarioService.save(any(Usuario.class))).thenReturn(guardado);
+        when(evaluacionService.findById(1L)).thenReturn(existente);
+        when(evaluacionService.save(any(Evaluacion.class))).thenReturn(actualizada);
 
-        String usuarioJson = """
-            {
-                "run": 11111111,
-                "dv_run": "L",
-                "nombre_usuario": "Luis Ramirez",
-                "correo": "luis@example.com",
-                "celular": 912345679,
-                "contrasena": "ClaveNueva123!",
-                "id_tipo_usuario": 2
-            }
-        """;
-
-        mockMvc.perform(post("/api/v1/gestion_usuario")
+        mockMvc.perform(put("/api/v1/evaluacion/1")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(usuarioJson))
-            .andExpect(status().isCreated())
-            .andExpect(jsonPath("$.id_usuario").value(3))
-            .andExpect(jsonPath("$.nombre_usuario").value("Luis Ramirez"));
+                .content(objectMapper.writeValueAsString(actualizada)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.descripcion").value("Desc nueva"))
+            .andExpect(jsonPath("$.nota").value(4.0));
     }
 
     @Test
-    public void testActualizarUsuario() throws Exception {
-        Usuario existente = new Usuario(1L, 12345678, "K", "Juan Pérez", "juan@example.com", 912345678, "ClaveSegura123!", 1L);
-        Usuario actualizado = new Usuario(1L, 12345678, "K", "Juan Pérez", "juan@actualizado.com", 912345678, "ClaveActualizada!", 1L);
+    void testActualizarEvaluacion_NoExistente() throws Exception {
+        Evaluacion actualizada = new Evaluacion(1L, "Desc nueva", 4.0, LocalDate.now(), 1L, 1L);
 
-        when(usuarioService.findById(1L)).thenReturn(existente);
-        when(usuarioService.save(any(Usuario.class))).thenReturn(actualizado);
+        when(evaluacionService.findById(1L)).thenThrow(new RuntimeException());
 
-        String usuarioActualizadoJson = """
-            {
-                "run": 12345678,
-                "dv_run": "K",
-                "nombre_usuario": "Juan Pérez",
-                "correo": "juan@actualizado.com",
-                "celular": 912345678,
-                "contrasena": "ClaveActualizada!",
-                "id_tipo_usuario": 1
-            }
-        """;
-
-        mockMvc.perform(put("/api/v1/gestion_usuario/1")
+        mockMvc.perform(put("/api/v1/evaluacion/1")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(usuarioActualizadoJson))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.correo").value("juan@actualizado.com"));
+                .content(objectMapper.writeValueAsString(actualizada)))
+            .andExpect(status().isNotFound());
     }
 
-        @Test
-    public void testEliminarUsuarioExistente() throws Exception {
-    doNothing().when(usuarioService).delete(1L);
+    @Test
+    void testEliminarEvaluacion_Exito() throws Exception {
+        doNothing().when(evaluacionService).delete(1L);
 
-    mockMvc.perform(delete("/api/v1/gestion_usuario/1"))
-        .andExpect(status().isNoContent());
-}
+        mockMvc.perform(delete("/api/v1/evaluacion/1"))
+            .andExpect(status().isNoContent());
+    }
 
+    @Test
+    void testEliminarEvaluacion_NoExistente() throws Exception {
+        doThrow(new RuntimeException()).when(evaluacionService).delete(1L);
+
+        mockMvc.perform(delete("/api/v1/evaluacion/1"))
+            .andExpect(status().isNotFound());
+    }
 }
 

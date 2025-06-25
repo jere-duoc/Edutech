@@ -28,7 +28,6 @@ public class PagoController {
     private PagoService pagoService;
 
     @Operation(summary = "Obtener todos los pagos", description = "Obtiene una lista de todos los pagos ingresados")
-
     @GetMapping
     public ResponseEntity<List<Pago>> listar(){
         List<Pago> pagos = pagoService.findAll();

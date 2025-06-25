@@ -25,9 +25,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@RequestMapping("/api/v1/evaluacion")
-@Tag(name = "Evaluacion Controller", description = "Operaciones http de Evaluacion.")
-public class EvaluacionController {
+@RequestMapping("/api/v2/evaluacion")
+@Tag(name = "Evaluacion Controller (v2 - HATEOAS)", description = "Operaciones con HATEOAS para las evaluaciones.")
+public class EvaluacionControllerV2 {
 
     @Autowired
     private EvaluacionService evaluacionService;
@@ -150,3 +150,4 @@ public class EvaluacionController {
         }
     }
 }
+

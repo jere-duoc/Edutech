@@ -1,88 +1,116 @@
-package Edutech.Gestion_Usuarios.service;
+package Edutech.Evaluaciones.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
+import org.springframework.web.client.RestTemplate;
 
-import Edutech.Gestion_Usuarios.model.Usuario;
-import Edutech.Gestion_Usuarios.repository.UsuarioRepository;
+import Edutech.Evaluaciones.model.Evaluacion;
+import Edutech.Evaluaciones.repository.EvaluacionRepository;
 
 public class EvaluacionServiceTest {
 
-    @Mock
-    private UsuarioRepository usuarioRepository;
-
     @InjectMocks
-    private UsuarioService usuarioService;
+    private EvaluacionService evaluacionService;
+
+    @Mock
+    private EvaluacionRepository evaluacionRepository;
+
+    @Mock
+    private RestTemplate restTemplate;
 
     @BeforeEach
-    public void setUp(){
+    void setUp() {
         MockitoAnnotations.openMocks(this);
     }
+
     @Test
-    public void testFindAll() {
-        Usuario u1 = new Usuario(1L, 12345678, "K", "Juan Pérez", "juan@example.com", 912345678, "ClaveSegura123!", 1);
-        Usuario u2 = new Usuario(2L, 87654321, "J", "Ana Gomez", "ana@example.com", 987654321, "ClaveSegura456!", 2);
+    void testFindAll() {
+        Evaluacion e1 = new Evaluacion(1L, "Desc 1", 4.5, LocalDate.now(), 1L, 1L);
+        Evaluacion e2 = new Evaluacion(2L, "Desc 2", 5.0, LocalDate.now(), 1L, 2L);
+        when(evaluacionRepository.findAll()).thenReturn(Arrays.asList(e1, e2));
 
-        when(usuarioRepository.findAll()).thenReturn(Arrays.asList(u1, u2));
+        List<Evaluacion> resultados = evaluacionService.findAll();
 
-        List<Usuario> usuarios = usuarioService.findAll();
-
-        assertEquals(2, usuarios.size());
-        assertEquals("Juan Pérez", usuarios.get(0).getNombre_usuario());
+        assertEquals(2, resultados.size());
+        verify(evaluacionRepository, times(1)).findAll();
     }
 
     @Test
-    public void testFindByIdExistente() {
-        Usuario u = new Usuario(1L, 12345678, "K", "Juan Pérez", "juan@example.com", 912345678, "ClaveSegura123!", 1);
-        when(usuarioRepository.findById(1L)).thenReturn(Optional.of(u));
+    void testFindById() {
+        Evaluacion e = new Evaluacion(1L, "Desc", 4.0, LocalDate.now(), 1L, 1L);
+        when(evaluacionRepository.findById(1L)).thenReturn(Optional.of(e));
 
-        Usuario resultado = usuarioService.findById(1L);
+        Evaluacion resultado = evaluacionService.findById(1L);
 
         assertNotNull(resultado);
-        assertEquals("Juan Pérez", resultado.getNombre_usuario());
+        assertEquals("Desc", resultado.getDescripcion());
+        verify(evaluacionRepository, times(1)).findById(1L);
     }
 
     @Test
-    public void testFindByIdInexistente() {
-        when(usuarioRepository.findById(99L)).thenReturn(Optional.empty());
+    void testSave() {
+        Evaluacion e = new Evaluacion(null, "Desc", 3.0, null, 1L, 1L);
+        when(evaluacionRepository.save(any(Evaluacion.class))).thenAnswer(invocation -> {
+            Evaluacion ev = invocation.getArgument(0);
+            ev.setId_evaluacion(1L);
+            return ev;
+        });
 
-        Usuario resultado = usuarioService.findById(99L);
+        Evaluacion guardado = evaluacionService.save(e);
 
-        assertNull(resultado);
+        assertNotNull(guardado.getId_evaluacion());
+        assertEquals(LocalDate.now(), guardado.getFecha_evaluacion());
+        verify(evaluacionRepository, times(1)).save(any(Evaluacion.class));
     }
 
     @Test
-    public void testGuardarUsuario() {
-        Usuario u = new Usuario(1L, 11111111, "L", "Luis Ramirez", "luis@example.com", 912345679, "ClaveNueva123!", 2L);
-        when(usuarioRepository.save(u)).thenReturn(new Usuario(3L, 11111111, "L", "Luis Ramirez", "luis@example.com", 912345679, "ClaveNueva123!", 2L));
-
-        Usuario guardado = usuarioService.save(u);
-
-        assertNotNull(guardado.getId_usuario());
-        assertEquals("Luis Ramirez", guardado.getNombre_usuario());
+    void testDelete() {
+        doNothing().when(evaluacionRepository).deleteById(1L);
+        evaluacionService.delete(1L);
+        verify(evaluacionRepository, times(1)).deleteById(1L);
     }
 
     @Test
-    public void testEliminarUsuarioExistente() {
-        Usuario u = new Usuario(1L, 12345678, "K", "Juan Pérez", "juan@example.com", 912345678, "ClaveSegura123!", 1);
-        when(usuarioRepository.findById(1L)).thenReturn(Optional.of(u));
+    void testVerificarUsuarioCurso_Existente() {
+        when(restTemplate.getForEntity("http://localhost:8080/api/v1/gestion_usuario/1", Object.class))
+            .thenReturn(null);
+        when(restTemplate.getForEntity("http://localhost:8081/api/v1/curso/1", Object.class))
+            .thenReturn(null);
 
-        usuarioService.delete(1L);
+        assertDoesNotThrow(() -> evaluacionService.verificarUsuarioCurso(1L, 1L));
+    }
 
-        verify(usuarioRepository, times(1)).deleteById(1L);
+    @Test
+    void testVerificarUsuarioCurso_NoExisteUsuario() {
+        when(restTemplate.getForEntity("http://localhost:8080/api/v1/gestion_usuario/1", Object.class))
+            .thenThrow(new RuntimeException("No existe usuario"));
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            evaluacionService.verificarUsuarioCurso(1L, 1L);
+        });
+        assertEquals("El ID de usuario no existe", exception.getMessage());
+    }
+
+    @Test
+    void testVerificarUsuarioCurso_NoExisteCurso() {
+        when(restTemplate.getForEntity("http://localhost:8080/api/v1/gestion_usuario/1", Object.class))
+            .thenReturn(null);
+        when(restTemplate.getForEntity("http://localhost:8081/api/v1/curso/1", Object.class))
+            .thenThrow(new RuntimeException("No existe curso"));
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            evaluacionService.verificarUsuarioCurso(1L, 1L);
+        });
+        assertEquals("El ID de curso no existe", exception.getMessage());
     }
 }
