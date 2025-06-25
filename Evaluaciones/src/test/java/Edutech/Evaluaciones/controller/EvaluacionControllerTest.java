@@ -21,7 +21,7 @@ import Edutech.Gestion_Usuarios.model.Usuario;
 import Edutech.Gestion_Usuarios.service.UsuarioService;
 
 @WebMvcTest(UsuarioController.class)
-public class UsuarioControllerTest { 
+public class EvaluacionControllerTest { 
 
     @Autowired
     private MockMvc mockMvc;

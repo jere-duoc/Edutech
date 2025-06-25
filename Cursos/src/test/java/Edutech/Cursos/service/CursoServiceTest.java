@@ -44,7 +44,7 @@ public class CursoServiceTest {
         List<Curso> cursos = cursoService.findAll();
 
         assertEquals(2, cursos.size());
-        assertEquals("Java Básico", cursos.get(0).getNombre());
+        assertEquals("Java Básico", cursos.get(0).getNombre_curso());
     }
 
     @Test
@@ -55,7 +55,7 @@ public class CursoServiceTest {
         Curso resultado = cursoService.findById(1L);
 
         assertNotNull(resultado);
-        assertEquals("Java Básico", resultado.getNombre());
+        assertEquals("Java Básico", resultado.getNombre_curso());
     }
 
     @Test
@@ -69,13 +69,13 @@ public class CursoServiceTest {
 
     @Test
     public void testGuardarCurso() {
-        Curso c = new Curso(null, "Python Intermedio", "Curso avanzado de Python", new BigDecimal("50000"));
+        Curso c = new Curso(1L, "Python Intermedio", "Curso avanzado de Python", new BigDecimal("50000"));
         when(cursoRepository.save(c)).thenReturn(new Curso(3L, "Python Intermedio", "Curso avanzado de Python", new BigDecimal("50000")));
 
         Curso guardado = cursoService.save(c);
 
-        assertNotNull(guardado.getId());
-        assertEquals("Python Intermedio", guardado.getNombre());
+        assertNotNull(guardado.getId_curso());
+        assertEquals("Python Intermedio", guardado.getNombre_curso());
     }
 
     @Test

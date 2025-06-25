@@ -34,15 +34,15 @@ public class CursoControllerTest {
     public void testListarCursos() throws Exception {
 
         Curso c1 = new Curso(1L, "Desarrollo orientado a objetos", "Ramo corta cabezas", new BigDecimal(40000));
-        Curso c2 = new Curso(1L, "Fundamentos de programacion", "Facilito", new BigDecimal(55000));
+        Curso c2 = new Curso(2L, "Fundamentos de programacion", "Facilito", new BigDecimal(55000));
 
         when(cursoService.findAll()).thenReturn(Arrays.asList(c1, c2));
 
         mockMvc.perform(get("/api/v1/curso")
                 .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$[0].nombre_curso").value("Java Básico"))
-            .andExpect(jsonPath("$[1].valor").value(60000));
+            .andExpect(jsonPath("$[0].nombre_curso").value("Desarrollo orientado a objetos"))
+            .andExpect(jsonPath("$[1].valor").value(55000));
     }
 
     @Test
@@ -54,7 +54,7 @@ public class CursoControllerTest {
         mockMvc.perform(get("/api/v1/curso/1")
                 .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.nombre_curso").value("Java Básico"))
+            .andExpect(jsonPath("$.nombre_curso").value("Fundamentos de programacion"))
             .andExpect(jsonPath("$.valor").value(40000));
     }
 
@@ -86,7 +86,7 @@ public class CursoControllerTest {
                 .content(cursoJson))
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.id_curso").value(3))
-            .andExpect(jsonPath("$.nombre_curso").value("Python Intermedio"));
+            .andExpect(jsonPath("$.nombre_curso").value("Fundamentos de programacion"));
     }
 
     @Test

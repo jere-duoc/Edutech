@@ -1,6 +1,7 @@
 package Edutech.Cursos.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,7 +22,8 @@ public class CursoService {
     }
 
     public Curso findById(long id) {
-        return cursoRepository.findById(id).get();
+        Optional<Curso> opt = cursoRepository.findById(id);
+        return opt.orElse(null);
     }
 
     public Curso save(Curso curso){

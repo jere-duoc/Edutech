@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import Edutech.Pagos.model.Pago;
 import Edutech.Pagos.service.PagoService;
+import io.swagger.v3.oas.annotations.Operation;
 
 @RestController
 @RequestMapping("/api/v1/pago")
@@ -25,6 +26,8 @@ public class PagoController {
 
     @Autowired
     private PagoService pagoService;
+
+    @Operation(summary = "Obtener todos los pagos", description = "Obtiene una lista de todos los pagos ingresados")
 
     @GetMapping
     public ResponseEntity<List<Pago>> listar(){

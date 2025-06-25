@@ -20,7 +20,7 @@ import org.mockito.MockitoAnnotations;
 import Edutech.Gestion_Usuarios.model.Usuario;
 import Edutech.Gestion_Usuarios.repository.UsuarioRepository;
 
-public class UsuarioServiceTest {
+public class EvaluacionServiceTest {
 
     @Mock
     private UsuarioRepository usuarioRepository;
